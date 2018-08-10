@@ -7,7 +7,7 @@ Sub Extrato_Poupança_BB()
 '
 Sheets(1).Select
 
-    'Transforma o formato CSV colado na célula A1 da primeira planilha em uma primeira base de dados
+    'Transforma o formato CSV em Planilha
     Columns("A:A").Select
     Application.CutCopyMode = False
     Selection.TextToColumns Destination:=Range("A1"), DataType:=xlDelimited, _
@@ -15,8 +15,11 @@ Sheets(1).Select
         Semicolon:=False, Comma:=True, Space:=False, Other:=False, FieldInfo _
         :=Array(Array(1, 4), Array(2, 1), Array(3, 1), Array(4, 1)), TrailingMinusNumbers:= _
         True
+        
+    Columns("C:C").Select
+    Selection.NumberFormat = "0.00"
     
-    'Troca retira a letra C Que vem acompanhada do número para identificar valores positivos
+    'Troca retira a letra C Que vem acompanhada do número
     Columns("C:C").Select
     Selection.Replace What:=" C", Replacement:="", LookAt:=xlPart, _
         SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
@@ -29,6 +32,11 @@ Sheets(1).Select
         TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=True, Tab:=False, _
         Semicolon:=False, Comma:=False, Space:=True, Other:=False, FieldInfo _
         :=Array(Array(1, 1), Array(2, 1)), TrailingMinusNumbers:=True
+        
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Replace What:=".", Replacement:=",", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
     
     Range("A1").Select
     Range(Selection, Selection.End(xlDown)).Select
@@ -55,15 +63,20 @@ Sheets(1).Select
         
     Next
     
-    'Seleciona dados do mês atual e corta para ser anexado na base de dados com valores de outros meses
-    Range("A2:C2").Select
+    'Ajusta o formato de colunas ao formato final da base de dados
+    Columns("B:B").Select
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Columns("E:E").Select
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+    'Seleciona dados do mês atual e corta para ser anexado na base de dados
+    Range("A2:G2").Select
     Range(Selection, Selection.End(xlDown)).Select
     Selection.Cut
     
     'Cola dados cortados da planilha anterior para ser anexado na base de dados
-    'A primeira linha deve ser preenchida com o seguinte cabeçalho:
-    '1-Data	2-Histórico	3-Valor	4-Saldo 5-Operação	6-Saldo_Fimdo_Dia	7-Saldo_Fim_do_Mês	8-Conta	9-Categoria	10-Sub_Categoria
-    'A linha 2 deve ser preenchida com o valor do saldo no ultimo dia do mês anterior
 
 Sheets(2).Select
     Range("A1").Select
@@ -73,6 +86,17 @@ Sheets(2).Select
     Cells(a + 1, 1).Select
     
     ActiveSheet.Paste
+    
+    Range("A1").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    a = Selection.Rows.Count 'conta o número de linhas
+    
+    Range(Cells(2, 7), Cells(a, 7)).Select
+    Selection.Copy
+    
+    Range(Cells(2, 10), Cells(a, 10)).Select
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
     
     'preenche as datas da data inicial até a última data disponível
     Range("A1").Select
@@ -135,11 +159,11 @@ Sheets(2).Select
     
     a = Selection.Rows.Count
     
-    Cells(a, 4).Select
+    Cells(a, 11).Select
     ActiveCell.FormulaR1C1 = "=R[-1]C+RC[-1]"
     Selection.Copy
 
-    Range(Cells(a - 1, 4), Cells(3, 4)).Select
+    Range(Cells(a - 1, 11), Cells(3, 11)).Select
     
     Selection.PasteSpecial Paste:=xlPasteFormulas, Operation:=xlNone, _
         SkipBlanks:=False, Transpose:=False
@@ -167,7 +191,7 @@ Sheets(2).Select
         
         End If
         
-        Cells(cont1, 5) = Cells(cont1, 4)
+        Cells(cont1, 12) = Cells(cont1, 11)
              
     Next
     
@@ -178,13 +202,13 @@ Sheets(2).Select
         
         If dia = 31 Then
             
-        Cells(cont1, 6) = Cells(cont1, 5)
+        Cells(cont1, 13) = Cells(cont1, 12)
             
         End If
         
         If dia = 30 And Day(Sheets(2).Cells(cont1 + 1, 1)) <> 31 Then
         
-        Cells(cont1, 6) = Cells(cont1, 5)
+        Cells(cont1, 13) = Cells(cont1, 12)
         
         End If
         
@@ -192,9 +216,9 @@ Sheets(2).Select
 
         
     'Preenche o identificadores e classificadores de conta
-    Range(Cells(a, 7), Cells(2, 7)) = "PP Presentes Banco do Brasil"
-    Range(Cells(a, 8), Cells(2, 8)) = "Investimento"
-    Range(Cells(a, 9), Cells(2, 9)) = "Poupança"
+    Range(Cells(a, 14), Cells(2, 14)) = "PP Cartao Banco do Brasil"
+    Range(Cells(a, 15), Cells(2, 15)) = "Investimento"
+    Range(Cells(a, 16), Cells(2, 16)) = "Poupança"
     
     'Limpa a planilha que o extrato CSV foi colado
     Sheets(1).Select
